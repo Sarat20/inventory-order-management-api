@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true
-
+  validates :role, presence: true
   enum role: {
     admin: 0,
     staff: 1
