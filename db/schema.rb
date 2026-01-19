@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_01_16_095048) do
+ActiveRecord::Schema[7.0].define(version: 2026_01_19_100235) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -28,6 +28,26 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_16_095048) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "order_items", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "product_id", null: false
+    t.integer "quantity"
+    t.decimal "price"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["product_id"], name: "index_order_items_on_product_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.decimal "total"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_orders_on_customer_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "name"
     t.decimal "price", null: false
@@ -41,6 +61,18 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_16_095048) do
     t.index ["supplier_id"], name: "index_products_on_supplier_id"
     t.check_constraint "price > 0::numeric", name: "price_must_be_positive"
     t.check_constraint "quantity >= 0", name: "quantity_must_be_non_negative"
+  end
+
+  create_table "stock_movements", force: :cascade do |t|
+    t.string "reference_type", null: false
+    t.bigint "reference_id", null: false
+    t.bigint "product_id", null: false
+    t.integer "quantity"
+    t.string "movement_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_stock_movements_on_product_id"
+    t.index ["reference_type", "reference_id"], name: "index_stock_movements_on_reference"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -59,6 +91,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_01_16_095048) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "order_items", "products"
+  add_foreign_key "orders", "customers"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "suppliers"
+  add_foreign_key "stock_movements", "products"
 end
