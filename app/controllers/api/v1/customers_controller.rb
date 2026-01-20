@@ -1,33 +1,44 @@
 module Api
   module V1
     class CustomersController < BaseController
+      before_action :set_customer, only: %i[show update destroy]
 
       def index
+        authorize Customer
         render json: { success: true, data: Customer.all }
       end
 
+      def show
+        authorize @customer
+        render json: { success: true, data: @customer }
+      end
+
       def create
-        customer = Customer.create!(customer_params)
+        customer = Customer.new(customer_params)
+        authorize customer
+        customer.save!
+
         render json: { success: true, data: customer }, status: :created
       end
-     
-      def show
-        data=Customer.find(params[:id])
-        render json: { success: true, data: data }
-      end
-      
+
       def update
-        customer = Customer.find(params[:id])
-        customer.update!(customer_params)
-        render json: { success: true, data: customer }
+        authorize @customer
+        @customer.update!(customer_params)
+
+        render json: { success: true, data: @customer }
       end
 
       def destroy
-        Customer.find(params[:id]).destroy
+        authorize @customer
+        @customer.destroy
         render json: { success: true }
       end
 
       private
+
+      def set_customer
+        @customer = Customer.find(params[:id])
+      end
 
       def customer_params
         params.require(:customer).permit(:name, :email)
