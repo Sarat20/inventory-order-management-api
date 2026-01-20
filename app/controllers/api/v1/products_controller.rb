@@ -1,11 +1,13 @@
 module Api
   module V1
     class ProductsController < BaseController
+      before_action :set_product, only: %i[show update destroy]
 
       def index
+        authorize Product
+
         products = Product.all
 
-       
         if params[:min_price].present?
           products = products.price_greater_than(params[:min_price].to_f)
         end
@@ -21,7 +23,7 @@ module Api
         if params[:in_stock].present?
           products = products.in_stock
         end
-        
+
         render json: {
           success: true,
           data: products,
@@ -30,28 +32,37 @@ module Api
       end
 
       def show
-        product = Product.find(params[:id])
-        render json: { success: true, data: product }
+        authorize @product
+        render json: { success: true, data: @product }
       end
 
       def create
-        product = Product.create!(product_params)
+        product = Product.new(product_params)
+        authorize product
+        product.save!
+
         render json: { success: true, data: product }, status: :created
       end
-      
+
       def update
-        product = Product.find(params[:id])
-        product.update!(product_params)
-        render json: { success: true, data: product }
+        authorize @product
+        @product.update!(product_params)
+
+        render json: { success: true, data: @product }
       end
 
       def destroy
-        product = Product.find(params[:id])
-        product.destroy
+        authorize @product
+        @product.destroy
+
         render json: { success: true }
       end
 
       private
+
+      def set_product
+        @product = Product.find(params[:id])
+      end
 
       def product_params
         params.require(:product).permit(
