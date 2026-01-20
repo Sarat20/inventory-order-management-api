@@ -1,6 +1,16 @@
 module Api
   module V1
     class BaseController < ApplicationController
+
+      include Pundit::Authorization
+
+      before_action :authenticate_user!
+
+      rescue_from Pundit::NotAuthorizedError do
+        render json: { error: "Not authorized" }, status: :forbidden
+      end      
+
+      
       rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
       rescue_from ActiveRecord::RecordInvalid, with: :validation_failed
 
