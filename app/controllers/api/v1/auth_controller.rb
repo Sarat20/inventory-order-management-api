@@ -30,8 +30,6 @@ module Api
           name: params[:name],
           email: params[:email],
           password: params[:password],
-          role: "staff",
-          status: "active"
         )
 
         render json: {
