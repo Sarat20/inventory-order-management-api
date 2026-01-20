@@ -8,6 +8,9 @@ gem "rails", "~> 7.0.10"
 
 gem 'bullet'
 
+gem 'devise'
+
+gem 'devise-jwt'
 
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
