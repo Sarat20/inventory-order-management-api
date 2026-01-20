@@ -16,8 +16,10 @@ Rails.application.routes.draw do
       end
 
       post   'auth/login',  to: 'auth#login'
+      post  'auth/register', to: 'auth#register'
       delete 'auth/logout', to: 'auth#logout' 
-      get 'me', to: 'users#me'     
+      get 'auth/me', to: 'auth#me'    
+       
     end
   end
 end
