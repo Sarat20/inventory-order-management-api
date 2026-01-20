@@ -266,6 +266,7 @@ DEPENDENCIES
   debug
   devise
   devise-jwt
+  jwt
   pg (~> 1.1)
   puma (>= 5.0)
   pundit
