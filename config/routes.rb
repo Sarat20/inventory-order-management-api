@@ -14,6 +14,9 @@ Rails.application.routes.draw do
           post :cancel
         end
       end
+
+      post   'auth/login',  to: 'auth#login'
+      delete 'auth/logout', to: 'auth#logout'      
     end
   end
 end
