@@ -7,6 +7,7 @@ module Api
         user = User.find_by(email: params[:email])
 
         if user&.valid_password?(params[:password])
+          request.env["warden"].set_user(user, scope: :user, store: false)
           token = request.env["warden-jwt_auth.token"]
 
           render json: {
