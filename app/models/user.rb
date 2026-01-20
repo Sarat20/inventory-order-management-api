@@ -18,4 +18,8 @@ class User < ApplicationRecord
     active: 0,
     inactive: 1
   }
+  def set_defaults
+    self.role ||= "staff"
+    self.status ||= "active"
+  end
 end
