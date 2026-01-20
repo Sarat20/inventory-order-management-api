@@ -10,6 +10,7 @@ gem 'jwt'
 
 gem 'rack-attack'
 
+gem "rubocop", require: false
 
 gem 'pundit'
 
