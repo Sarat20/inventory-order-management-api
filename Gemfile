@@ -7,7 +7,6 @@ ruby "3.3.0"
 gem "rails", "~> 7.0.10"
 
 gem 'jwt'
-gem 'devise-jwt'
 
 gem 'rack-attack'
 

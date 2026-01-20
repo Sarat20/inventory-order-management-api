@@ -16,7 +16,8 @@ Rails.application.routes.draw do
       end
 
       post   'auth/login',  to: 'auth#login'
-      delete 'auth/logout', to: 'auth#logout'      
+      delete 'auth/logout', to: 'auth#logout' 
+      get 'me', to: 'users#me'     
     end
   end
 end

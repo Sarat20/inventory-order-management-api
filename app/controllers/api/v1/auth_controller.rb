@@ -5,6 +5,10 @@ class Api::V1::AuthController < ApplicationController
     user = User.find_by(email: params[:email])
 
     if user&.valid_password?(params[:password])
+      
+      request.env['warden'].set_user(user, scope: :user)
+
+
       token = request.env['warden-jwt_auth.token']
 
       render json: {
