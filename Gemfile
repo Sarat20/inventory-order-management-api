@@ -17,6 +17,9 @@ gem 'pundit'
 
 gem 'bullet'
 
+gem "sidekiq"
+
+
 gem 'devise'
 
 gem 'devise-jwt'
