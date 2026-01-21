@@ -19,6 +19,7 @@ gem 'bullet'
 
 gem "sidekiq"
 
+gem "faker"
 
 gem 'devise'
 
