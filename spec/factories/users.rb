@@ -9,7 +9,7 @@ FactoryBot.define do
 
   factory :admin, class: "User" do
     name { "Admin" }
-    email { "admin@test.com" }
+    email { Faker::Internet.unique.email }
     password { "password123" }
     role { :admin }
     status { :active }

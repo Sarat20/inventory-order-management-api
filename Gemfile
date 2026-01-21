@@ -19,7 +19,12 @@ gem 'bullet'
 
 gem "sidekiq"
 
-gem "faker"
+
+group :development, :test do
+  gem "faker"
+end
+
+
 
 gem 'devise'
 

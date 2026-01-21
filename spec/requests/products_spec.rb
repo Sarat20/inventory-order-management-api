@@ -4,7 +4,6 @@ RSpec.describe "Products API", type: :request do
   let(:admin) { create(:admin) }
   let(:category) { create(:category) }
   let(:supplier) { create(:supplier) }
-
   let!(:products) { create_list(:product, 3, category: category, supplier: supplier) }
 
   before do
@@ -18,6 +17,7 @@ RSpec.describe "Products API", type: :request do
     }
 
     expect(response).to have_http_status(:ok)
+
     body = JSON.parse(response.body)
     expect(body["data"].length).to eq(3)
   end
