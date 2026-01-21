@@ -3,11 +3,14 @@ class Order < ApplicationRecord
 
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
-  has_many :stock_movements, as: :reference
+  has_many :stock_movements, as: :reference, dependent: :destroy
 
   accepts_nested_attributes_for :order_items, allow_destroy: true
 
   before_validation :set_default_status, on: :create
+  before_validation :calculate_total
+
+  after_commit :enqueue_confirmation, on: :create
 
   validates :status, presence: true
   validate :must_have_items
@@ -22,7 +25,7 @@ class Order < ApplicationRecord
           raise ActiveRecord::Rollback, "Insufficient stock"
         end
 
-        product.decrement!(:quantity, item.quantity)
+        product.update!(quantity: product.quantity - item.quantity)
 
         stock_movements.create!(
           product: product,
@@ -34,8 +37,6 @@ class Order < ApplicationRecord
       update!(status: "confirmed")
     end
   end
-  
- after_commit :enqueue_confirmation, on: :create
 
   def ship!
     update!(status: "shipped")
@@ -47,17 +48,21 @@ class Order < ApplicationRecord
 
   private
 
- 
- 
-
   def enqueue_confirmation
-      OrderConfirmationJob.perform_later(id)
+    OrderConfirmationJob.perform_later(id)
   end
+
   def must_have_items
     errors.add(:base, "Order must have at least one item") if order_items.empty?
   end
 
   def set_default_status
     self.status ||= "pending"
+  end
+
+  def calculate_total
+    self.total = order_items.sum do |item|
+      item.product.price * item.quantity
+    end
   end
 end

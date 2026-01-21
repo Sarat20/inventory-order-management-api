@@ -1,7 +1,12 @@
 class OrderConfirmationJob < ApplicationJob
   queue_as :default
 
-  def perform(*args)
-    # Do something later
+  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  discard_on ActiveRecord::RecordNotFound
+
+  def perform(order_id)
+    order = Order.find(order_id)
+
+    Rails.logger.info "Order confirmed: ##{order.id}"
   end
 end
