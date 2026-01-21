@@ -15,4 +15,14 @@ class Product < ApplicationRecord
     scope :price_less_than,    ->(amount) { where(price: ...amount) }
     scope :in_stock,           -> { where("quantity > 0") }
     scope :by_category,        ->(category_id) { where(category_id: category_id) }
+
+
+
+    after_commit :check_low_stock
+
+    def check_low_stock
+       if quantity < 5
+        LowStockNotificationJob.perform_later(id)
+       end
+    end
 end

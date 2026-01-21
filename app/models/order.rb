@@ -34,6 +34,8 @@ class Order < ApplicationRecord
       update!(status: "confirmed")
     end
   end
+  
+ after_commit :enqueue_confirmation, on: :create
 
   def ship!
     update!(status: "shipped")
@@ -46,7 +48,11 @@ class Order < ApplicationRecord
   private
 
  
+ 
 
+  def enqueue_confirmation
+      OrderConfirmationJob.perform_later(id)
+  end
   def must_have_items
     errors.add(:base, "Order must have at least one item") if order_items.empty?
   end
