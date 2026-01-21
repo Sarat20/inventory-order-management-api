@@ -9,6 +9,7 @@ gem "rails", "~> 7.0.10"
 gem 'jwt'
 
 gem 'rack-attack'
+gem "rack-cors" 
 
 gem "rubocop", require: false
 
