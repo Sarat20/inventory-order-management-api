@@ -1,0 +1,15 @@
+inherit_from:
+  - .rubocop_todo.yml
+
+require:
+  - rubocop-rails
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  Exclude:
+    - "db/schema.rb"
+    - "bin/*"
+    - "node_modules/**/*"
+    - "db/migrate/**/*"
+    - "db/schema.rb"

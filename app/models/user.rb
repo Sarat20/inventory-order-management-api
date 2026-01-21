@@ -9,12 +9,13 @@ class User < ApplicationRecord
   
 
   include Devise::JWT::RevocationStrategies::JTIMatcher
-  enum role: {
+
+  enum :role, {
     admin: 0,
     staff: 1
   }
 
-  enum status: {
+  enum :status, {
     active: 0,
     inactive: 1
   }

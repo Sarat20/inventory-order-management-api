@@ -1,4 +1,4 @@
-puts "Seeding database..."
+Rails.logger.debug "Seeding database..."
 
 
 admin = User.find_or_create_by!(email: "admin@inventory.com") do |u|
@@ -45,4 +45,4 @@ Customer.find_or_create_by!(email: "alice@test.com") do |c|
   c.name = "Alice"
 end
 
-puts "Seeding completed!"
+Rails.logger.debug "Seeding completed!"
