@@ -74,6 +74,7 @@ Rails.application.configure do
   # Use a different logger for distributed setups.
   # require "syslog/logger"
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new "app-name")
+  config.cache_store = :redis_cache_store, { url: ENV.fetch("REDIS_URL", "redis://127.0.0.1:6379/0") }
 
   if ENV["RAILS_LOG_TO_STDOUT"].present?
     logger           = ActiveSupport::Logger.new(STDOUT)

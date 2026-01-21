@@ -72,3 +72,5 @@ group :development do
   # gem "spring"
 end
 
+
+gem "lograge", "~> 0.14.0"
