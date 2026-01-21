@@ -5,7 +5,9 @@ module Api
 
       def index
         authorize Product
+        cache_key = "products/index/#{params[:min_price]}-#{params[:max_price]}-#{params[:category_id]}-#{params[:in_stock]}"
 
+        products = Rails.cache.fetch(cache_key, expires_in: 1.hour) do
         products = Product.all
 
         if params[:min_price].present?
@@ -23,7 +25,9 @@ module Api
         if params[:in_stock].present?
           products = products.in_stock
         end
-
+        
+          products.to_a
+        end
         render json: {
           success: true,
           data: products,
@@ -33,7 +37,10 @@ module Api
 
       def show
         authorize @product
-        render json: { success: true, data: @product }
+          product = Rails.cache.fetch("product/#{@product.id}", expires_in: 1.hour) do
+             @product
+          end
+        render json: { success: true, data: product }
       end
 
       def create

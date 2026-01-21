@@ -236,6 +236,7 @@ GEM
       erb
       psych (>= 4.0.0)
       tsort
+    redis (4.8.1)
     redis-client (0.26.3)
       connection_pool
     regexp_parser (2.11.3)
@@ -320,6 +321,7 @@ DEPENDENCIES
   rack-attack
   rack-cors
   rails (~> 7.0.10)
+  redis (~> 4.0)
   rubocop
   rubocop-rails
   sidekiq

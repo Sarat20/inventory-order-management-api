@@ -1,6 +1,7 @@
 require "sidekiq/web"
 
 Rails.application.routes.draw do
+  get "/health", to: "health#show"
   mount Sidekiq::Web => "/sidekiq"
 
   devise_for :users
@@ -24,6 +25,8 @@ Rails.application.routes.draw do
       post   "auth/register", to: "auth#register"
       delete "auth/logout",   to: "auth#logout"
       get    "auth/me",       to: "auth#me"
+   
+
     end
   end
 end

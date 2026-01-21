@@ -25,4 +25,14 @@ class Product < ApplicationRecord
         LowStockNotificationJob.perform_later(id)
        end
     end
+
+    after_commit :invalidate_cache
+
+    private
+
+    def invalidate_cache
+      Rails.cache.delete("product/#{id}")
+      Rails.cache.delete_matched("products/index/*")
+    end
+
 end
