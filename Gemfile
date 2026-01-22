@@ -20,6 +20,10 @@ gem 'bullet'
 gem "sidekiq"
 
 
+gem "aasm"
+
+gem "audited"
+
 group :development, :test do
   gem "faker"
 end
