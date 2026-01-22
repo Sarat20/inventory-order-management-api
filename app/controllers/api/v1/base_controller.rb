@@ -1,20 +1,24 @@
 module Api
   module V1
     class BaseController < ApplicationController
-
       include Pundit::Authorization
 
       before_action :authenticate_user!
+      before_action :set_audit_user
 
       rescue_from Pundit::NotAuthorizedError do
         render json: { error: "Not authorized" }, status: :forbidden
       end      
 
-      
       rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
       rescue_from ActiveRecord::RecordInvalid, with: :validation_failed
 
       private
+
+      def set_audit_user
+        Audited.store[:audited_user] = current_user
+        Audited.store[:remote_address] = request.remote_ip
+      end
 
       def record_not_found(error)
         render json: {
@@ -27,13 +31,17 @@ module Api
       end
 
       def validation_failed(error)
-        render json: {
+        render json: { 
           success: false,
           error: {
             code: "VALIDATION_ERROR",
             messages: error.record.errors.full_messages
           }
         }, status: :unprocessable_entity
+      end
+
+      after_action do
+        Audited.store[:comment] = nil
       end
     end
   end

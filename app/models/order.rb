@@ -1,9 +1,12 @@
 class Order < ApplicationRecord
 
   include AASM
+
   
-  audited
   belongs_to :customer
+  
+ 
+  audited associated_with: :customer
 
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
@@ -11,7 +14,6 @@ class Order < ApplicationRecord
 
   accepts_nested_attributes_for :order_items, allow_destroy: true
 
-  before_validation :set_default_status, on: :create
   before_validation :calculate_total
 
   after_commit :enqueue_confirmation, on: :create

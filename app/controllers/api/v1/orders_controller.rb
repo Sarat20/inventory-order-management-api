@@ -17,18 +17,21 @@ module Api
       def create
         order = Order.new(order_params)
         authorize order
+        
+        Audited.store[:comment] = "Order created by #{current_user.email}"
         order.save!
-
         render json: { success: true, data: order }, status: :created
       end
 
       def confirm
         authorize @order, :confirm?
-        
+
         unless @order.may_confirm?
           return render json: { error: "Order cannot be confirmed in its current state" }, status: :unprocessable_entity
         end
-
+         
+        Audited.store[:comment] = "Order confirmed by #{current_user.email}"
+      
         @order.confirm!
         render json: { success: true, data: @order }
       end
@@ -37,7 +40,9 @@ module Api
         authorize @order, :ship?
         unless @order.may_ship?
           return render json: { error: "Order cannot be shipped in its current state" }, status: :unprocessable_entity
-        end        
+        end   
+        
+        Audited.store[:comment] = "Order shipped by #{current_user.email}"
         @order.ship!
         render json: { success: true, data: @order }
       end
@@ -48,7 +53,7 @@ module Api
         unless @order.may_cancel?
           return render json: { error: "Order cannot be cancelled in its current state" }, status: :unprocessable_entity
         end
-
+        Audited.store[:comment] = "Order cancelled by #{current_user.email}"
         @order.cancel!
         render json: { success: true, data: @order }
       end

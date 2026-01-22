@@ -1,5 +1,7 @@
 class Supplier < ApplicationRecord
-   
+    
+    audited
+    
     has_many :products
 
     validates :name, presence: true
