@@ -24,18 +24,31 @@ module Api
 
       def confirm
         authorize @order, :confirm?
+        
+        unless @order.may_confirm?
+          return render json: { error: "Order cannot be confirmed in its current state" }, status: :unprocessable_entity
+        end
+
         @order.confirm!
         render json: { success: true, data: @order }
       end
 
       def ship
         authorize @order, :ship?
+        unless @order.may_ship?
+          return render json: { error: "Order cannot be shipped in its current state" }, status: :unprocessable_entity
+        end        
         @order.ship!
         render json: { success: true, data: @order }
       end
 
       def cancel
         authorize @order, :cancel?
+        
+        unless @order.may_cancel?
+          return render json: { error: "Order cannot be cancelled in its current state" }, status: :unprocessable_entity
+        end
+
         @order.cancel!
         render json: { success: true, data: @order }
       end
