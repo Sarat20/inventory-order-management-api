@@ -1,11 +1,8 @@
 class Order < ApplicationRecord
-
   include AASM
 
-  
   belongs_to :customer
-  
- 
+
   audited associated_with: :customer
 
   has_many :order_items, dependent: :destroy
@@ -20,7 +17,7 @@ class Order < ApplicationRecord
 
   validates :status, presence: true
   validate :must_have_items
-  
+
   aasm column: "status" do
     state :pending, initial: true
     state :confirmed
@@ -28,7 +25,10 @@ class Order < ApplicationRecord
     state :cancelled
 
     event :confirm do
-      transitions from: :pending, to: :confirmed, after: :handle_confirm
+      transitions from: :pending, to: :confirmed, guard: :stock_available?
+      after do
+        handle_confirm
+      end
     end
 
     event :ship do
@@ -42,14 +42,17 @@ class Order < ApplicationRecord
 
   private
 
+  def stock_available?
+    order_items.all? do |item|
+      item.product.quantity >= item.quantity
+    end
+  end
+
+  
   def handle_confirm
     ActiveRecord::Base.transaction do
       order_items.each do |item|
         product = item.product.lock!
-
-        if product.quantity < item.quantity
-          raise ActiveRecord::Rollback, "Insufficient stock"
-        end
 
         product.update!(quantity: product.quantity - item.quantity)
 
@@ -69,8 +72,6 @@ class Order < ApplicationRecord
   def must_have_items
     errors.add(:base, "Order must have at least one item") if order_items.empty?
   end
-
- 
 
   def calculate_total
     self.total = order_items.sum do |item|

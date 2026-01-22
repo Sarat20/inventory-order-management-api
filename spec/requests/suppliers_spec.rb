@@ -8,20 +8,25 @@ RSpec.describe "Suppliers API", type: :request do
     @token = JSON.parse(response.body)["token"]
   end
 
-  it "creates supplier" do
-    post "/api/v1/suppliers",
-      params: { supplier: { name: "ABC", email: "abc@test.com" } },
-      headers: { "Authorization" => "Bearer #{@token}" }
+  describe "POST /suppliers" do
+    it "creates supplier" do
+      post "/api/v1/suppliers",
+        params: { supplier: { name: "ABC", email: "abc@test.com" } },
+        headers: { "Authorization" => "Bearer #{@token}" }
 
-    expect(response).to have_http_status(:created)
+      body = JSON.parse(response.body)
+      expect(body["data"]["name"]).to eq("ABC")
+    end
   end
 
-  it "lists suppliers" do
-    create(:supplier)
+  describe "GET /suppliers" do
+    it "lists suppliers" do
+      create(:supplier, name: "XYZ")
 
-    get "/api/v1/suppliers",
-      headers: { "Authorization" => "Bearer #{@token}" }
+      get "/api/v1/suppliers", headers: { "Authorization" => "Bearer #{@token}" }
 
-    expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["data"].first["name"]).to eq("XYZ")
+    end
   end
 end

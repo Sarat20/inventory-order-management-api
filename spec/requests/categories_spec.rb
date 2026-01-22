@@ -8,22 +8,25 @@ RSpec.describe "Categories API", type: :request do
     @token = JSON.parse(response.body)["token"]
   end
 
-  it "creates a category" do
-    post "/api/v1/categories",
-      params: { category: { name: "Electronics" } },
-      headers: { "Authorization" => "Bearer #{@token}" }
+  describe "POST /categories" do
+    it "creates category" do
+      post "/api/v1/categories",
+        params: { category: { name: "Electronics" } },
+        headers: { "Authorization" => "Bearer #{@token}" }
 
-    expect(response).to have_http_status(:created)
+      body = JSON.parse(response.body)
+      expect(body["data"]["name"]).to eq("Electronics")
+    end
   end
 
-  it "lists categories" do
-    create(:category, name: "Books")
+  describe "GET /categories" do
+    it "returns categories" do
+      create(:category, name: "Books")
 
-    get "/api/v1/categories",
-      headers: { "Authorization" => "Bearer #{@token}" }
+      get "/api/v1/categories", headers: { "Authorization" => "Bearer #{@token}" }
 
-    expect(response).to have_http_status(:ok)
-    body = JSON.parse(response.body)
-    expect(body["data"].length).to be >= 1
+      body = JSON.parse(response.body)
+      expect(body["data"].first["name"]).to eq("Books")
+    end
   end
 end
