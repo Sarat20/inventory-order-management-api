@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :category do
-    name { Faker::Commerce.department }
+    sequence(:name) { |n| "Category #{n}" }
+
 
     trait :electronics do
       name { "Electronics" }

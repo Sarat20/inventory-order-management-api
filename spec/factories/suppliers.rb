@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :supplier do
-    name { "ABC Supplier" }
-    email { Faker::Internet.email }
+    sequence(:name) { |n| "Supplier #{n}" }
+    sequence(:email) { |n| "supplier#{n}@test.com" }
   end
 end
