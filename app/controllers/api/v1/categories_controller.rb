@@ -5,12 +5,27 @@ module Api
 
       def index
         authorize Category
-        render json: { success: true, data: Category.all }
+
+        categories = Category.order(:id).page(params[:page]).per(10)
+
+        render json: {
+          success: true,
+          data: CategorySerializer.new(categories).serializable_hash,
+          meta: {
+            page: categories.current_page,
+            total_pages: categories.total_pages,
+            total_count: categories.total_count
+          }
+        }
       end
 
       def show
         authorize @category
-        render json: { success: true, data: @category }
+
+        render json: {
+          success: true,
+          data: CategorySerializer.new(@category).serializable_hash
+        }
       end
 
       def create
@@ -18,19 +33,26 @@ module Api
         authorize category
         category.save!
 
-        render json: { success: true, data: category }, status: :created
+        render json: {
+          success: true,
+          data: CategorySerializer.new(category).serializable_hash
+        }, status: :created
       end
 
       def update
         authorize @category
         @category.update!(category_params)
 
-        render json: { success: true, data: @category }
+        render json: {
+          success: true,
+          data: CategorySerializer.new(@category).serializable_hash
+        }
       end
 
       def destroy
         authorize @category
         @category.destroy
+
         render json: { success: true }
       end
 

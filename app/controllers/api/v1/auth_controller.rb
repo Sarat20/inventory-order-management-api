@@ -12,18 +12,12 @@ module Api
 
           render json: {
             token: token,
-            user: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role
-            }
+            user: UserSerializer.new(user).serializable_hash
           }, status: :ok
         else
           render json: { error: "Invalid email or password" }, status: :unauthorized
         end
       end
-
 
       def register
         user = User.create!(
@@ -34,27 +28,14 @@ module Api
 
         render json: {
           success: true,
-          data: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-          }
+          data: UserSerializer.new(user).serializable_hash
         }, status: :created
       end
 
-    
       def me
-        render json: {
-          id: current_user.id,
-          name: current_user.name,
-          email: current_user.email,
-          role: current_user.role,
-          status: current_user.status
-        }
+        render json: UserSerializer.new(current_user).serializable_hash
       end
 
-  
       def logout
         render json: { success: true, message: "Logged out successfully" }, status: :ok
       end

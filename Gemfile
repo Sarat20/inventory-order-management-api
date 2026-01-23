@@ -8,6 +8,10 @@ gem "rails", "~> 7.0.10"
 
 gem 'jwt'
 
+gem "alba"
+gem "kaminari"
+
+
 gem 'rack-attack'
 gem "rack-cors" 
 

@@ -5,42 +5,60 @@ module Api
 
       def index
         authorize Product
-        cache_key = "products/index/#{params[:min_price]}-#{params[:max_price]}-#{params[:category_id]}-#{params[:in_stock]}"
 
-        products = Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-        products = Product.all
+        cache_key = "products/index/#{params[:min_price]}-#{params[:max_price]}-#{params[:category_id]}-#{params[:in_stock]}-#{params[:page]}"
 
-        if params[:min_price].present?
-          products = products.price_greater_than(params[:min_price].to_f)
+        result = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+          products = Product.all
+
+          if params[:min_price].present?
+            products = products.price_greater_than(params[:min_price].to_f)
+          end
+
+          if params[:max_price].present?
+            products = products.price_less_than(params[:max_price].to_f)
+          end
+
+          if params[:category_id].present?
+            products = products.by_category(params[:category_id])
+          end
+
+          if params[:in_stock].present?
+            products = products.in_stock
+          end
+
+          paginated = products.order(:id).page(params[:page]).per(10)
+
+          {
+            ids: paginated.pluck(:id),
+            meta: {
+              page: paginated.current_page,
+              total_pages: paginated.total_pages,
+              total_count: paginated.total_count
+            }
+          }
         end
 
-        if params[:max_price].present?
-          products = products.price_less_than(params[:max_price].to_f)
-        end
+        products = Product.includes(:category, :supplier).where(id: result[:ids])
 
-        if params[:category_id].present?
-          products = products.by_category(params[:category_id])
-        end
-
-        if params[:in_stock].present?
-          products = products.in_stock
-        end
-        
-          products.to_a
-        end
         render json: {
           success: true,
-          data: products,
-          meta: { total: products.count }
+          data: ProductSerializer.new(products).serializable_hash,
+          meta: result[:meta]
         }
       end
 
       def show
         authorize @product
-          product = Rails.cache.fetch("product/#{@product.id}", expires_in: 1.hour) do
-             @product
-          end
-        render json: { success: true, data: product }
+
+        product = Rails.cache.fetch("product/#{@product.id}", expires_in: 1.hour) do
+          @product
+        end
+
+        render json: {
+          success: true,
+          data: ProductSerializer.new(product).serializable_hash
+        }
       end
 
       def create
@@ -48,14 +66,20 @@ module Api
         authorize product
         product.save!
 
-        render json: { success: true, data: product }, status: :created
+        render json: {
+          success: true,
+          data: ProductSerializer.new(product).serializable_hash
+        }, status: :created
       end
 
       def update
         authorize @product
         @product.update!(product_params)
 
-        render json: { success: true, data: @product }
+        render json: {
+          success: true,
+          data: ProductSerializer.new(@product).serializable_hash
+        }
       end
 
       def destroy
@@ -68,7 +92,7 @@ module Api
       private
 
       def set_product
-        @product = Product.find(params[:id])
+        @product = Product.includes(:category, :supplier).find(params[:id])
       end
 
       def product_params

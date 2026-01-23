@@ -76,6 +76,7 @@ GEM
       mutex_m
       securerandom (>= 0.3)
       tzinfo (~> 2.0)
+    alba (3.10.0)
     ast (2.4.3)
     audited (5.8.0)
       activerecord (>= 5.2, < 8.2)
@@ -139,6 +140,18 @@ GEM
     json (2.18.0)
     jwt (3.1.2)
       base64
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
@@ -347,6 +360,7 @@ PLATFORMS
 
 DEPENDENCIES
   aasm
+  alba
   audited
   bootsnap
   bullet
@@ -356,6 +370,7 @@ DEPENDENCIES
   factory_bot_rails (~> 6.5)
   faker
   jwt
+  kaminari
   lograge (~> 0.14.0)
   pg (~> 1.1)
   puma (>= 5.0)

@@ -5,12 +5,21 @@ module Api
 
       def index
         authorize Customer
-        render json: { success: true, data: Customer.all }
+        customers = Customer.all
+
+        render json: {
+          success: true,
+          data: CustomerSerializer.new(customers).serializable_hash
+        }
       end
 
       def show
         authorize @customer
-        render json: { success: true, data: @customer }
+
+        render json: {
+          success: true,
+          data: CustomerSerializer.new(@customer).serializable_hash
+        }
       end
 
       def create
@@ -18,19 +27,26 @@ module Api
         authorize customer
         customer.save!
 
-        render json: { success: true, data: customer }, status: :created
+        render json: {
+          success: true,
+          data: CustomerSerializer.new(customer).serializable_hash
+        }, status: :created
       end
 
       def update
         authorize @customer
         @customer.update!(customer_params)
 
-        render json: { success: true, data: @customer }
+        render json: {
+          success: true,
+          data: CustomerSerializer.new(@customer).serializable_hash
+        }
       end
 
       def destroy
         authorize @customer
         @customer.destroy
+
         render json: { success: true }
       end
 

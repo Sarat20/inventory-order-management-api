@@ -5,7 +5,18 @@ module Api
 
       def index
         authorize Supplier
-        render json: { success: true, data: Supplier.all }
+
+        suppliers = Supplier.order(:id).page(params[:page]).per(10)
+
+        render json: {
+          success: true,
+          data: SupplierSerializer.new(suppliers).serializable_hash,   
+          meta: {
+            page: suppliers.current_page,
+            total_pages: suppliers.total_pages,
+            total_count: suppliers.total_count
+          }
+        }
       end
 
       def create
@@ -13,19 +24,26 @@ module Api
         authorize supplier
         supplier.save!
 
-        render json: { success: true, data: supplier }, status: :created
+        render json: {
+          success: true,
+          data: SupplierSerializer.new(supplier).serializable_hash   
+        }, status: :created
       end
 
       def update
         authorize @supplier
         @supplier.update!(supplier_params)
 
-        render json: { success: true, data: @supplier }
+        render json: {
+          success: true,
+          data: SupplierSerializer.new(@supplier).serializable_hash   
+        }
       end
 
       def destroy
         authorize @supplier
         @supplier.destroy
+
         render json: { success: true }
       end
 

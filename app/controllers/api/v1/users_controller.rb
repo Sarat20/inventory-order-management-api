@@ -1,11 +1,10 @@
 class Api::V1::UsersController < ApplicationController
+  before_action :authenticate_user!
+
   def me
     render json: {
-      id: current_user.id,
-      name: current_user.name,
-      email: current_user.email,
-      role: current_user.role,
-      status: current_user.status
+      success: true,
+      data: UserSerializer.new(current_user).serializable_hash   
     }
   end
 end
