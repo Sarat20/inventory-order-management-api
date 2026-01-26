@@ -32,7 +32,7 @@ module Api
 
         render json: {
           success: true,
-          data: OrderSerializer.new(order).serialize
+          data: OrderSerializer.new(order).serializable_hash
         }, status: :created
       end
 
