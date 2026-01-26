@@ -27,7 +27,7 @@ module Api
             products = products.in_stock
           end
 
-          paginated = products.order(:id).page(params[:page]).per(10)
+          paginated = products.order(:id).page(params[:page]).per(2)
 
           {
             ids: paginated.pluck(:id),

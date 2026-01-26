@@ -2,6 +2,8 @@ require_relative "boot"
 
 require "rails/all"
 require "yaml"
+require "apartment/elevators/subdomain"
+
 
 
 # Require the gems listed in Gemfile, including any gems
@@ -31,6 +33,8 @@ module InventoryOrderManagementApi
     config.middleware.use ActionDispatch::Session::CookieStore
     config.active_job.queue_adapter = :sidekiq
     
+    
+
 
   end
 end
