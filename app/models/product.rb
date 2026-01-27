@@ -21,13 +21,15 @@ class Product < ApplicationRecord
 
 
 
-    after_commit :check_low_stock
+    after_commit :check_low_stock, on: :update
+
 
     def check_low_stock
-       if quantity < 5
+      if saved_change_to_quantity? && quantity < 5 && quantity_before_last_save >= 5
         LowStockNotificationJob.perform_later(id)
-       end
+      end
     end
+
 
     after_commit :invalidate_cache
 

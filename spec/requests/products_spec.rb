@@ -4,14 +4,21 @@ RSpec.describe "Products API", type: :request do
   let(:admin)    { create(:admin) }
   let(:category) { create(:category, name: "Electronics") }
   let(:supplier) { create(:supplier, name: "ABC Supplier") }
+  let(:tenant_headers) { { "X-Tenant" => "test_tenant" } }
 
   before do
-    post "/api/v1/auth/login", params: { email: admin.email, password: "password123" }
+    post "/api/v1/auth/login",
+         params: { email: admin.email, password: "password123" },
+         headers: tenant_headers
+
     @token = JSON.parse(response.body)["token"]
   end
 
   let(:headers) do
-    { "Authorization" => "Bearer #{@token}" }
+    {
+      "Authorization" => "Bearer #{@token}",
+      "X-Tenant" => "test_tenant"
+    }
   end
 
   describe "GET /products" do
@@ -39,16 +46,16 @@ RSpec.describe "Products API", type: :request do
   describe "POST /products" do
     it "creates product" do
       post "/api/v1/products",
-        params: {
-          product: {
-            name: "iPad",
-            price: 50000,
-            quantity: 10,
-            category_id: category.id,
-            supplier_id: supplier.id
-          }
-        },
-        headers: headers
+           params: {
+             product: {
+               name: "iPad",
+               price: 50000,
+               quantity: 10,
+               category_id: category.id,
+               supplier_id: supplier.id
+             }
+           },
+           headers: headers
 
       product = Product.last
       expect(product.name).to eq("iPad")
@@ -60,10 +67,8 @@ RSpec.describe "Products API", type: :request do
       product = create(:product, name: "Old Name", category: category, supplier: supplier)
 
       put "/api/v1/products/#{product.id}",
-        params: {
-          product: { name: "New Name" }
-        },
-        headers: headers
+          params: { product: { name: "New Name" } },
+          headers: headers
 
       expect(product.reload.name).to eq("New Name")
     end

@@ -1,6 +1,7 @@
 module Api
   module V1
-    class AuthController < ApplicationController
+    class AuthController < BaseController
+
       skip_before_action :authenticate_user!, only: [:login, :register]
 
       def login
@@ -37,6 +38,7 @@ module Api
       end
 
       def logout
+        sign_out(current_user)
         render json: { success: true, message: "Logged out successfully" }, status: :ok
       end
     end

@@ -2,6 +2,9 @@ module Api
   module V1
     class BaseController < ApplicationController
       include Pundit::Authorization
+      include TenantSwitcher
+       skip_before_action :switch_tenant, if: -> { Rails.env.test? }
+      
 
       before_action :authenticate_user!
       before_action :set_audit_user

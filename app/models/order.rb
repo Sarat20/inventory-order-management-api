@@ -11,7 +11,7 @@ class Order < ApplicationRecord
 
   accepts_nested_attributes_for :order_items, allow_destroy: true
 
-  before_validation :calculate_total
+  before_save :calculate_total
 
   after_commit :enqueue_confirmation, on: :create
 
@@ -25,7 +25,7 @@ class Order < ApplicationRecord
     state :cancelled
 
     event :confirm do
-      transitions from: :pending, to: :confirmed, guard: :stock_available?
+      transitions from: :pending, to: :confirmed
       after do
         handle_confirm
       end
@@ -40,19 +40,24 @@ class Order < ApplicationRecord
     end
   end
 
-  private
+ 
 
-  def stock_available?
+  def has_sufficient_stock?
     order_items.all? do |item|
       item.product.quantity >= item.quantity
     end
   end
 
+  private
   
   def handle_confirm
     ActiveRecord::Base.transaction do
       order_items.each do |item|
         product = item.product.lock!
+
+        if product.quantity < item.quantity
+          raise ActiveRecord::Rollback, "Insufficient stock"
+        end
 
         product.update!(quantity: product.quantity - item.quantity)
 
@@ -74,8 +79,6 @@ class Order < ApplicationRecord
   end
 
   def calculate_total
-    self.total = order_items.sum do |item|
-      item.product.price * item.quantity
-    end
+    self.total = order_items.sum { |item| item.price.to_f * item.quantity }
   end
 end

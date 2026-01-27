@@ -2,11 +2,14 @@ require "rails_helper"
 
 RSpec.describe "Auth API", type: :request do
   let(:user) { create(:user, password: "password123") }
+  let(:tenant_headers) { { "X-Tenant" => "test_tenant" } }
 
   describe "POST /auth/login" do
     context "with valid credentials" do
       it "returns token" do
-        post "/api/v1/auth/login", params: { email: user.email, password: "password123" }
+        post "/api/v1/auth/login",
+             params: { email: user.email, password: "password123" },
+             headers: tenant_headers
 
         body = JSON.parse(response.body)
 
@@ -17,7 +20,9 @@ RSpec.describe "Auth API", type: :request do
 
     context "with invalid credentials" do
       it "returns error" do
-        post "/api/v1/auth/login", params: { email: user.email, password: "wrong" }
+        post "/api/v1/auth/login",
+             params: { email: user.email, password: "wrong" },
+             headers: tenant_headers
 
         body = JSON.parse(response.body)
 
@@ -29,10 +34,17 @@ RSpec.describe "Auth API", type: :request do
 
   describe "GET /auth/me" do
     it "returns current user data" do
-      post "/api/v1/auth/login", params: { email: user.email, password: "password123" }
+      post "/api/v1/auth/login",
+           params: { email: user.email, password: "password123" },
+           headers: tenant_headers
+
       token = JSON.parse(response.body)["token"]
 
-      get "/api/v1/auth/me", headers: { "Authorization" => "Bearer #{token}" }
+      get "/api/v1/auth/me",
+          headers: {
+            "Authorization" => "Bearer #{token}",
+            "X-Tenant" => "test_tenant"
+          }
 
       body = JSON.parse(response.body)
 
@@ -43,15 +55,25 @@ RSpec.describe "Auth API", type: :request do
 
   describe "DELETE /auth/logout" do
     it "logs out the user and invalidates token" do
-     
-      post "/api/v1/auth/login", params: { email: user.email, password: "password123" }
+      post "/api/v1/auth/login",
+           params: { email: user.email, password: "password123" },
+           headers: tenant_headers
+
       token = JSON.parse(response.body)["token"]
 
-      delete "/api/v1/auth/logout", headers: { "Authorization" => "Bearer #{token}" }
+      delete "/api/v1/auth/logout",
+             headers: {
+               "Authorization" => "Bearer #{token}",
+               "X-Tenant" => "test_tenant"
+             }
 
       expect(response).to have_http_status(:ok)
 
-      get "/api/v1/auth/me", headers: { "Authorization" => "Bearer #{token}" }
+      get "/api/v1/auth/me",
+          headers: {
+            "Authorization" => "Bearer #{token}",
+            "X-Tenant" => "test_tenant"
+          }
 
       expect(response).to have_http_status(:unauthorized)
     end

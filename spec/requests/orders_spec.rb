@@ -4,28 +4,35 @@ RSpec.describe "Orders API", type: :request do
   let(:admin)    { create(:admin) }
   let(:customer) { create(:customer) }
   let(:product)  { create(:product, quantity: 10, price: 100) }
+  let(:tenant_headers) { { "X-Tenant" => "test_tenant" } }
 
   before do
-    post "/api/v1/auth/login", params: { email: admin.email, password: "password123" }
+    post "/api/v1/auth/login",
+         params: { email: admin.email, password: "password123" },
+         headers: tenant_headers
+
     @token = JSON.parse(response.body)["token"]
   end
 
   let(:headers) do
-    { "Authorization" => "Bearer #{@token}" }
+    {
+      "Authorization" => "Bearer #{@token}",
+      "X-Tenant" => "test_tenant"
+    }
   end
 
   context "POST /orders" do
     it "creates an order with items" do
       post "/api/v1/orders",
-        params: {
-          order: {
-            customer_id: customer.id,
-            order_items_attributes: [
-              { product_id: product.id, quantity: 2 }
-            ]
-          }
-        },
-        headers: headers
+           params: {
+             order: {
+               customer_id: customer.id,
+               order_items_attributes: [
+                 { product_id: product.id, quantity: 2 }
+               ]
+             }
+           },
+           headers: headers
 
       body = JSON.parse(response.body)
 
@@ -36,25 +43,23 @@ RSpec.describe "Orders API", type: :request do
 
     it "does not allow creating order without items" do
       post "/api/v1/orders",
-        params: {
-          order: { customer_id: customer.id }
-        },
-        headers: headers
+           params: { order: { customer_id: customer.id } },
+           headers: headers
 
       expect(Order.count).to eq(0)
     end
 
     it "allows creating order even if quantity is more than stock (checked on confirm)" do
       post "/api/v1/orders",
-        params: {
-          order: {
-            customer_id: customer.id,
-            order_items_attributes: [
-              { product_id: product.id, quantity: 100 }
-            ]
-          }
-        },
-        headers: headers
+           params: {
+             order: {
+               customer_id: customer.id,
+               order_items_attributes: [
+                 { product_id: product.id, quantity: 100 }
+               ]
+             }
+           },
+           headers: headers
 
       expect(Order.count).to eq(1)
     end
@@ -63,22 +68,21 @@ RSpec.describe "Orders API", type: :request do
   context "Order state transitions" do
     let!(:order) do
       post "/api/v1/orders",
-        params: {
-          order: {
-            customer_id: customer.id,
-            order_items_attributes: [
-              { product_id: product.id, quantity: 2 }
-            ]
-          }
-        },
-        headers: headers
+           params: {
+             order: {
+               customer_id: customer.id,
+               order_items_attributes: [
+                 { product_id: product.id, quantity: 2 }
+               ]
+             }
+           },
+           headers: headers
 
       Order.last
     end
 
     it "confirms an order" do
       post "/api/v1/orders/#{order.id}/confirm", headers: headers
-
       expect(order.reload.status).to eq("confirmed")
     end
 
@@ -91,7 +95,6 @@ RSpec.describe "Orders API", type: :request do
 
     it "cancels an order" do
       post "/api/v1/orders/#{order.id}/cancel", headers: headers
-
       expect(order.reload.status).to eq("cancelled")
     end
   end
@@ -99,15 +102,15 @@ RSpec.describe "Orders API", type: :request do
   context "Stock management" do
     it "reduces product stock when order is confirmed" do
       post "/api/v1/orders",
-        params: {
-          order: {
-            customer_id: customer.id,
-            order_items_attributes: [
-              { product_id: product.id, quantity: 3 }
-            ]
-          }
-        },
-        headers: headers
+           params: {
+             order: {
+               customer_id: customer.id,
+               order_items_attributes: [
+                 { product_id: product.id, quantity: 3 }
+               ]
+             }
+           },
+           headers: headers
 
       order = Order.last
       initial_stock = product.quantity
@@ -119,15 +122,15 @@ RSpec.describe "Orders API", type: :request do
 
     it "fails to confirm if stock is insufficient" do
       post "/api/v1/orders",
-        params: {
-          order: {
-            customer_id: customer.id,
-            order_items_attributes: [
-              { product_id: product.id, quantity: 100 }
-            ]
-          }
-        },
-        headers: headers
+           params: {
+             order: {
+               customer_id: customer.id,
+               order_items_attributes: [
+                 { product_id: product.id, quantity: 100 }
+               ]
+             }
+           },
+           headers: headers
 
       order = Order.last
 

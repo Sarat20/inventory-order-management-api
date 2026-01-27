@@ -24,7 +24,12 @@ module Api
       end
 
       def create
-        order = Order.new(order_params)
+        order = Order.new(order_params)  
+     
+
+        order.order_items.each do |item|
+            item.price = item.product.price
+        end
         authorize order
 
         Audited.store[:comment] = "Order created by #{current_user.email}"
@@ -41,6 +46,10 @@ module Api
 
         unless @order.may_confirm?
           return render json: { error: "Order cannot be confirmed in its current state" }, status: :unprocessable_entity
+        end
+
+        unless @order.has_sufficient_stock?
+          return render json: { error: "Insufficient stock" }, status: :unprocessable_entity
         end
 
         Audited.store[:comment] = "Order confirmed by #{current_user.email}"

@@ -16,7 +16,6 @@ gem "ros-apartment", require: "apartment"
 
 
 
-
 gem 'rack-attack'
 gem "rack-cors" 
 

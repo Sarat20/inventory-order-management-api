@@ -2,21 +2,28 @@ require "rails_helper"
 
 RSpec.describe "Categories API", type: :request do
   let(:admin) { create(:admin) }
+  let(:tenant_headers) { { "X-Tenant" => "test_tenant" } }
 
   before do
-    post "/api/v1/auth/login", params: { email: admin.email, password: "password123" }
+    post "/api/v1/auth/login",
+         params: { email: admin.email, password: "password123" },
+         headers: tenant_headers
+
     @token = JSON.parse(response.body)["token"]
   end
 
   let(:headers) do
-    { "Authorization" => "Bearer #{@token}" }
+    {
+      "Authorization" => "Bearer #{@token}",
+      "X-Tenant" => "test_tenant"
+    }
   end
 
   describe "POST /categories" do
     it "creates a category" do
       post "/api/v1/categories",
-        params: { category: { name: "Electronics" } },
-        headers: headers
+           params: { category: { name: "Electronics" } },
+           headers: headers
 
       body = JSON.parse(response.body)
 
@@ -44,8 +51,8 @@ RSpec.describe "Categories API", type: :request do
       category = create(:category, name: "Old Name")
 
       put "/api/v1/categories/#{category.id}",
-        params: { category: { name: "New Name" } },
-        headers: headers
+          params: { category: { name: "New Name" } },
+          headers: headers
 
       body = JSON.parse(response.body)
 
