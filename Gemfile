@@ -1,13 +1,46 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.0"
+ruby "3.2.4"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.10"
 
+gem 'jwt'
+
+gem "alba"
+gem "kaminari"
+
+
+gem "ros-apartment", require: "apartment"
+
+
+
+gem 'rack-attack'
+gem "rack-cors" 
+
+gem "rubocop", require: false
+
+gem 'pundit'
+
 gem 'bullet'
 
+gem "sidekiq"
+
+
+gem "aasm"
+
+gem "audited"
+
+group :development, :test do
+  gem "faker"
+end
+
+
+
+gem 'devise'
+
+gem 'devise-jwt'
 
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
@@ -19,7 +52,7 @@ gem "puma", ">= 5.0"
 # gem "jbuilder"
 
 # Use Redis adapter to run Action Cable in production
-# gem "redis", "~> 4.0"
+ gem "redis", "~> 4.0"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
@@ -40,6 +73,14 @@ gem "bootsnap", require: false
 # gem "rack-cors"
 
 group :development, :test do
+  gem "rubocop", require: false
+  gem "rubocop-rails", require: false
+end
+
+
+
+
+group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
 end
@@ -49,3 +90,8 @@ group :development do
   # gem "spring"
 end
 
+
+gem "lograge", "~> 0.14.0"
+
+gem "rspec-rails", "~> 7.1", :groups => [:development, :test]
+gem "factory_bot_rails", "~> 6.5", :groups => [:development, :test]

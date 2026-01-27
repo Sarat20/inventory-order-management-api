@@ -1,25 +1,48 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Examples:
-#
-#   movies = Movie.create([{ name: "Star Wars" }, { name: "Lord of the Rings" }])
-#   Character.create(name: "Luke", movie: movies.first)
-User.create!(
-  name: "Admin User",
-  email: "admin@inventory.com",
-  role: :admin,
-  status: :active
-)
+Rails.logger.debug "Seeding database..."
 
-Category.create!(name: "Electronics")
 
-Supplier.create!(
-  name: "ABC Supplier",
-  email: "supplier@test.com"
-)
+admin = User.find_or_create_by!(email: "admin@inventory.com") do |u|
+  u.name = "Admin User"
+  u.password = "admin123"
+  u.role = :admin
+  u.status = :active
+end
 
-Customer.create!(
-  name: "John Doe",
-  email: "john@test.com"
-)
+
+electronics = Category.find_or_create_by!(name: "Electronics")
+groceries   = Category.find_or_create_by!(name: "Groceries")
+
+
+supplier1 = Supplier.find_or_create_by!(email: "abc@supplier.com") do |s|
+  s.name = "ABC Supplier"
+end
+
+supplier2 = Supplier.find_or_create_by!(email: "xyz@supplier.com") do |s|
+  s.name = "XYZ Supplier"
+end
+
+
+Product.find_or_create_by!(name: "iPhone") do |p|
+  p.price = 70000
+  p.quantity = 10
+  p.category = electronics
+  p.supplier = supplier1
+end
+
+Product.find_or_create_by!(name: "Rice Bag") do |p|
+  p.price = 1200
+  p.quantity = 50
+  p.category = groceries
+  p.supplier = supplier2
+end
+
+
+Customer.find_or_create_by!(email: "john@test.com") do |c|
+  c.name = "John Doe"
+end
+
+Customer.find_or_create_by!(email: "alice@test.com") do |c|
+  c.name = "Alice"
+end
+
+Rails.logger.debug "Seeding completed!"

@@ -1,6 +1,8 @@
 class Supplier < ApplicationRecord
-   
-    has_many :products
+    
+    audited
+    
+    has_many :products, dependent: :destroy
 
     validates :name, presence: true
     validates :email, presence: true, uniqueness: true

@@ -1,6 +1,10 @@
 require_relative "boot"
 
 require "rails/all"
+require "yaml"
+require "apartment/elevators/subdomain"
+
+
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -23,5 +27,14 @@ module InventoryOrderManagementApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    config.middleware.use Rack::Attack
+
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore
+    config.active_job.queue_adapter = :sidekiq
+    
+    
+
+
   end
 end

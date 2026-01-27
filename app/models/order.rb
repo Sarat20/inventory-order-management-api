@@ -1,19 +1,56 @@
 class Order < ApplicationRecord
+  include AASM
+
   belongs_to :customer
+
+  audited associated_with: :customer
 
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
-  has_many :stock_movements, as: :reference
+  has_many :stock_movements, as: :reference, dependent: :destroy
 
   accepts_nested_attributes_for :order_items, allow_destroy: true
 
-  before_validation :set_default_status, on: :create
+  before_save :calculate_total
+
+  after_commit :enqueue_confirmation, on: :create
 
   validates :status, presence: true
   validate :must_have_items
 
+  aasm column: "status" do
+    state :pending, initial: true
+    state :confirmed
+    state :shipped
+    state :cancelled
 
-  def confirm!
+    event :confirm do
+      transitions from: :pending, to: :confirmed
+      after do
+        handle_confirm
+      end
+    end
+
+    event :ship do
+      transitions from: :confirmed, to: :shipped
+    end
+
+    event :cancel do
+      transitions from: %i[pending confirmed], to: :cancelled
+    end
+  end
+
+ 
+
+  def has_sufficient_stock?
+    order_items.all? do |item|
+      item.product.quantity >= item.quantity
+    end
+  end
+
+  private
+  
+  def handle_confirm
     ActiveRecord::Base.transaction do
       order_items.each do |item|
         product = item.product.lock!
@@ -22,7 +59,7 @@ class Order < ApplicationRecord
           raise ActiveRecord::Rollback, "Insufficient stock"
         end
 
-        product.decrement!(:quantity, item.quantity)
+        product.update!(quantity: product.quantity - item.quantity)
 
         stock_movements.create!(
           product: product,
@@ -30,28 +67,18 @@ class Order < ApplicationRecord
           movement_type: "out"
         )
       end
-
-      update!(status: "confirmed")
     end
   end
 
-  def ship!
-    update!(status: "shipped")
+  def enqueue_confirmation
+    OrderConfirmationJob.perform_later(id)
   end
-
-  def cancel!
-    update!(status: "cancelled")
-  end
-
-  private
-
- 
 
   def must_have_items
     errors.add(:base, "Order must have at least one item") if order_items.empty?
   end
 
-  def set_default_status
-    self.status ||= "pending"
+  def calculate_total
+    self.total = order_items.sum { |item| item.price.to_f * item.quantity }
   end
 end
