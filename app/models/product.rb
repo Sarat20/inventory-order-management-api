@@ -23,15 +23,29 @@ class Product < ApplicationRecord
 
     after_commit :check_low_stock, on: :update
 
+    after_commit :invalidate_cache
 
+
+    def display_price
+     "₹#{price}"
+    end
+
+    def stock_status
+      quantity > 0 ? "In Stock" : "Out of Stock"
+    end
+
+    def low_stock?
+      quantity < 5
+    end
     def check_low_stock
       if saved_change_to_quantity? && quantity < 5 && quantity_before_last_save >= 5
         LowStockNotificationJob.perform_later(id)
       end
     end
+    
 
 
-    after_commit :invalidate_cache
+    
 
     private
 
