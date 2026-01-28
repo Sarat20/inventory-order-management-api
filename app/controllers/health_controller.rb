@@ -15,6 +15,9 @@ class HealthController < ActionController::API
 
   private
 
+  # NOTE: The bare rescue clause will catch all StandardError subclasses.
+  # Consider whether being more specific about which exceptions indicate a failed health check
+  # would be more appropriate.
   def check_db
     ActiveRecord::Base.connection.execute("SELECT 1")
     { status: "ok" }
@@ -22,6 +25,9 @@ class HealthController < ActionController::API
     { status: "error" }
   end
 
+  # NOTE: Each health check creates a new Redis.new connection, bypassing any connection pooling.
+  # If you have Redis configured elsewhere with a connection pool, consider reusing that.
+  # Also, the bare rescue clause could be made more specific.
   def check_redis
     Redis.new.ping == "PONG"
     { status: "ok" }

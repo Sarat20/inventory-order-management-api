@@ -4,6 +4,9 @@ module Api
 
       skip_before_action :authenticate_user!, only: [:login, :register]
 
+      # NOTE: The login action doesn't check whether the user is active before allowing authentication.
+      # If the User model has statuses like inactive or terminated, consider whether those users
+      # should be prevented from logging in.
       def login
         user = User.find_by(email: params[:email])
 
@@ -20,6 +23,9 @@ module Api
         end
       end
 
+      # NOTE: User registration uses User.create! without wrapping parameters in user_params.
+      # While this works, consider whether using strong parameters would provide an extra layer
+      # of protection and consistency with other controllers.
       def register
         user = User.create!(
           name: params[:name],

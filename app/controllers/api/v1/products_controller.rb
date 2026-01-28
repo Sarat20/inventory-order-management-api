@@ -6,6 +6,8 @@ module Api
       def index
         authorize Product
 
+        # NOTE: If cache key parameters come from user input, consider whether there's any risk
+        # of cache key explosion (e.g., unbounded min_price/max_price combinations).
         cache_key = "products/index/#{params[:min_price]}-#{params[:max_price]}-#{params[:category_id]}-#{params[:in_stock]}-#{params[:page]}"
 
         result = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
@@ -39,6 +41,8 @@ module Api
           }
         end
 
+        # NOTE: The result[:ids] array won't preserve ordering from the cache.
+        # If ordering matters, you may need to reorder after the where(id: ...) fetch.
         products = Product.includes(:category, :supplier).where(id: result[:ids])
 
         render json: {
@@ -51,6 +55,9 @@ module Api
       def show
         authorize @product
 
+        # NOTE: Caching the ActiveRecord object directly works, but the entire serialized object
+        # goes into cache. If the Product model grows in complexity, this could become expensive.
+        # Consider caching the serialized hash instead.
         product = Rails.cache.fetch("product/#{@product.id}", expires_in: 1.hour) do
           @product
         end

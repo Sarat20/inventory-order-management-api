@@ -46,6 +46,9 @@ class User < ApplicationRecord
 
   private
 
+  # NOTE: These defaults are also defined at the database level (role: default 1, status: default 0).
+  # Consider whether both layers of defaults are necessary, or if this could lead to confusion
+  # about the source of truth.
   def set_default_status_and_role
     self.role ||= "staff"
     self.status ||= "active"
