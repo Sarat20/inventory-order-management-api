@@ -3,7 +3,6 @@ class Tenant < ApplicationRecord
   validates :schema_name, presence: true, uniqueness: true
 
   after_create :create_schema, unless: -> { Rails.env.test? }
-
   private
 
   def create_schema
