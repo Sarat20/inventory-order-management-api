@@ -3,6 +3,7 @@ require_relative "boot"
 require "rails/all"
 require "yaml"
 require "apartment/elevators/subdomain"
+require "apartment/custom_console"
 
 
 
