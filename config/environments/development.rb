@@ -65,6 +65,9 @@ Rails.application.configure do
     # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
+  config.hosts << "shop_one.localhost"
+  config.hosts << "shop_two.localhost"
+
   # Bullet gem configuration (N+1 query detection)
   config.after_initialize do
     Bullet.enable = true
