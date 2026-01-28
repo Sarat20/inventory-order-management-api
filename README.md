@@ -89,29 +89,29 @@ gem 'sidekiq'
 
 # Request Flow
 
-Postman Request
+-Postman Request
    ↓
-TenantSwitcher Concern
+-TenantSwitcher Concern
    ↓
-Reads X-Tenant header
+-Reads X-Tenant header
    ↓
-Apartment::Tenant.switch!
+-Apartment::Tenant.switch!
    ↓
-Controller Action
+-Controller Action
    ↓
-ActiveRecord talks to correct schema
+-ActiveRecord talks to correct schema
 
 
 # Setup Instructions
 
-bundle install
-rails db:drop db:create db:migrate
-rails s
+-bundle install
+-rails db:drop db:create db:migrate
+-rails s
 
 # Postman Usage
 
 # Headers:
 
-X-Tenant: shop_one
-Authorization: Bearer <token>
+-X-Tenant: shop_one
+-Authorization: Bearer <token>
 
