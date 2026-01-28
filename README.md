@@ -1,141 +1,117 @@
-#  Inventory Order Management API (Multi-Tenant SaaS Backend)
+# 🏢 Inventory Order Management API (Multi-Tenant SaaS)
 
-A production-grade, multi-tenant Inventory & Order Management backend built using Ruby on Rails 7.
+A **production-style multi-tenant Inventory & Order Management system** built using:
 
-This project demonstrates real-world backend engineering concepts such as schema-based multi-tenancy, JWT authentication, role-based authorization, order lifecycle management using a state machine, stock-safe order confirmation, background job processing, Redis caching, auditing, rate limiting, and a full RSpec test suite.
+- **Ruby on Rails 7**
+- **PostgreSQL (Schema-based multi-tenancy)**
+- **ros-apartment (Apartment gem fork)**
+- **JWT Authentication**
+- **Role-based access (Admin / Staff)**
+- **Auditing, Background Jobs, Policies**
 
-## Tech Stack
+---
 
-Ruby 3.2.4  
-Rails 7.0.10 (API only)  
-PostgreSQL  
-Redis + Sidekiq  
-Devise + JWT  
-Pundit  
-Apartment (multi-tenancy)  
-Alba (serialization)  
-AASM (state machine)  
-Audited (audit logs)  
-Kaminari (pagination)  
-RSpec + FactoryBot  
-Lograge  
-Rack::Attack  
+# 🚀 What is this project?
 
-## 📁 Project Structure
+This is a **SaaS-style backend system** where:
 
-app/  
- ├── controllers/api/v1  
- ├── models  
- ├── policies  
- ├── serializers  
- ├── jobs  
-config/  
- ├── environments  
- ├── initializers  
- ├── routes.rb  
-db/  
- ├── migrate  
- ├── schema.rb  
-spec/  
- ├── models  
- ├── requests  
- ├── jobs  
- ├── factories  
- └── support  
+- Each **Shop = One Tenant**
+- Each tenant has **isolated data**
+- Each tenant has **its own users, products, orders**
+- Data is **physically separated using PostgreSQL schemas**
+- Only the `tenants` table lives in the **public schema**
 
-## Setup Instructions
+---
 
-Clone repository:
+#  What is Multi-Tenancy?
 
-git clone https://github.com/Sarat20/inventory-order-management-api.git  
-cd inventory-order-management-api  
+Multi-tenancy means:
 
-Install dependencies:
+ One application, one database, but **multiple customers (tenants)** with **isolated data**.
 
-bundle install  
+In our case:
 
-Setup database:
+| Shop     | Schema   |
+|----------|----------|
+| Shop One | shop_one |
+| Shop Two | shop_two |
 
-rails db:create  
-rails db:migrate  
-rails db:seed  
+Each schema contains:
 
-Start Redis:
+- users
+- products
+- orders
+- categories
+- suppliers
+- audits
+  
 
-redis-server  
+---
 
-Start Sidekiq:
+# 🏗️ How Apartment Works (In Simple Words)
 
-bundle exec sidekiq  
+- PostgreSQL supports **schemas**
+- Apartment switches:
+```sql
+SET search_path TO shop_one
+Now all queries go to that schema
 
-Start Rails server:
+Switching happens:
+Per request
+Or manually in console
+```
+#  Architecture
 
-rails s  
+One DB
+ ├── public schema
+ │    └── tenants
+ │
+ ├── volopay schema
+ │    ├── users
+ │    ├── products
+ │    ├── orders
+ │    └── ...
+ │
+ └── shop_one schema
+      ├── users
+      ├── products
+      ├── orders
+      └── ...
 
-## Run Tests
+# Important Gems
 
-bundle exec rspec  
+gem 'ros-apartment'
+gem 'devise'
+gem 'jwt'
+gem 'audited'
+gem 'sidekiq'
 
-##  Multi-Tenant Usage
 
-Subdomain mode (recommended):
+# Request Flow
 
-Add to /etc/hosts:
+Postman Request
+   ↓
+TenantSwitcher Concern
+   ↓
+Reads X-Tenant header
+   ↓
+Apartment::Tenant.switch!
+   ↓
+Controller Action
+   ↓
+ActiveRecord talks to correct schema
 
-127.0.0.1 shop_one.localhost  
-127.0.0.1 shop_two.localhost  
 
-Access:
+# Setup Instructions
 
-http://shop_one.localhost:3000  
-http://shop_two.localhost:3000  
+bundle install
+rails db:drop db:create db:migrate
+rails s
 
-Header mode (Postman ):
+# Postman Usage
 
-X-Tenant: shop_one  
-X-Tenant: shop_two
+# Headers:
 
-## 🔐 Default Admin User
+X-Tenant: shop_one
+Authorization: Bearer <token>
 
-Email: admin@inventory.com  
-Password: admin123  
-
-## Postman Collection
-
-https://sarat-110d3064-941488.postman.co/workspace/volopay's-Workspace~b7d41657-6319-443e-8542-befa76036c7e/collection/51439697-5636edcd-1ea0-4144-80dd-4870bafb456c7e?action=share&creator=51439697  
-
-## 📡 Main API Endpoints
-
-Authentication:  
-POST /api/v1/auth/login  
-POST /api/v1/auth/register  
-GET /api/v1/auth/me  
-DELETE /api/v1/auth/logout  
-
-Products:  
-GET /api/v1/products  
-POST /api/v1/products  
-GET /api/v1/products/:id  
-PUT /api/v1/products/:id  
-DELETE /api/v1/products/:id  
-
-Orders:  
-POST /api/v1/orders  
-POST /api/v1/orders/:id/confirm  
-POST /api/v1/orders/:id/ship  
-POST /api/v1/orders/:id/cancel  
-
-Categories / Suppliers / Customers:  
-Full CRUD APIs  
-
-#important
-
-Multi-tenant SaaS architecture using PostgreSQL schemas  
-JWT authentication with role-based authorization  
-Order workflow using AASM state machine  
-Stock-safe confirmation using transactions and DB locking  
-Background job processing using Sidekiq  
-Redis caching with proper invalidation  
-Auditing for critical models  
-Rate limiting using Rack::Attack  
-Full RSpec test coverage  
