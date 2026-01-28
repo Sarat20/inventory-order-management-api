@@ -62,21 +62,28 @@ Or manually in console
 ```
 #  Architecture
 
-One DB
- ├── public schema
- │    └── tenants
- │
- ├── volopay schema
- │    ├── users
- │    ├── products
- │    ├── orders
- │    └── ...
- │
- └── shop_one schema
-      ├── users
-      ├── products
-      ├── orders
-      └── ...
+One PostgreSQL Database
+│
+├── public schema
+│   ├── tenants
+│   ├── global tables (if any)
+│
+├── shop_one schema
+│   ├── users
+│   ├── products
+│   ├── categories
+│   ├── orders
+│   └── ...
+│
+├── shop_two schema
+│   ├── users
+│   ├── products
+│   ├── categories
+│   ├── orders
+│   └── ...
+│
+└── more tenant schemas...
+
 
 # Important Gems
 
