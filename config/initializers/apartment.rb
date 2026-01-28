@@ -8,7 +8,8 @@ Apartment.configure do |config|
     User
   ]
 
-  config.tenant_names = -> { Tenant.pluck(:schema_name) }
+  config.tenant_names = -> { Tenant.where.not(schema_name: nil).pluck(:schema_name) }
+
 end
 
 Rails.application.config.middleware.use Apartment::Elevators::Subdomain

@@ -8,7 +8,7 @@ module TenantSwitcher
   private
 
   def switch_tenant
-    # ✅ In tests, always force a single tenant
+   
     if Rails.env.test?
       Apartment::Tenant.switch!("test_tenant")
       return
