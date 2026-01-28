@@ -36,6 +36,9 @@ group :development, :test do
   gem "faker"
 end
 
+group :development do
+  gem "pry-rails"
+end
 
 
 gem 'devise'
