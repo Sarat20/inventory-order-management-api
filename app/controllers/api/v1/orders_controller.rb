@@ -24,9 +24,11 @@ module Api
       end
 
       def create
-        order = Order.new(order_params)  
-     
+        order = Order.new(order_params)
 
+        # NOTE: This price-setting logic might be better encapsulated in the model
+        # (e.g., a before_validation callback or a dedicated service). This keeps the
+        # controller thin and ensures the price is always set regardless of how the order is created.
         order.order_items.each do |item|
             item.price = item.product.price
         end

@@ -4,6 +4,8 @@ class Product < ApplicationRecord
     
     belongs_to :category
     belongs_to :supplier
+    # NOTE: This association lacks a dependent option. Consider whether orphaned stock_movements
+    # should be destroyed, nullified, or restricted when a product is deleted.
     has_many :stock_movements
 
     has_many :order_items
@@ -25,7 +27,9 @@ class Product < ApplicationRecord
 
     after_commit :invalidate_cache
 
-
+    # NOTE: The low stock threshold (5) is hardcoded here and in check_low_stock below.
+    # Consider extracting this to a constant (e.g., LOW_STOCK_THRESHOLD = 5) to avoid
+    # duplication and ease future changes.
     def display_price
      "₹#{price}"
     end
@@ -37,18 +41,17 @@ class Product < ApplicationRecord
     def low_stock?
       quantity < 5
     end
+
     def check_low_stock
       if saved_change_to_quantity? && quantity < 5 && quantity_before_last_save >= 5
         LowStockNotificationJob.perform_later(id)
       end
     end
-    
-
-
-    
 
     private
 
+    # NOTE: delete_matched can be expensive in Redis at scale because it performs a SCAN operation.
+    # For high-traffic applications, consider alternative strategies like key versioning.
     def invalidate_cache
       Rails.cache.delete("product/#{id}")
       Rails.cache.delete_matched("products/index/*")

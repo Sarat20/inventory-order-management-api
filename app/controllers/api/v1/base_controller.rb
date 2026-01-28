@@ -3,7 +3,9 @@ module Api
     class BaseController < ApplicationController
       include Pundit::Authorization
       include TenantSwitcher
-       skip_before_action :switch_tenant, if: -> { Rails.env.test? }
+      # NOTE: This skip_before_action and the duplicate check inside TenantSwitcher#switch_tenant
+      # both handle the test environment. Consider whether one approach is sufficient to avoid redundancy.
+      skip_before_action :switch_tenant, if: -> { Rails.env.test? }
       
 
       before_action :authenticate_user!

@@ -40,8 +40,9 @@ class Order < ApplicationRecord
     end
   end
 
- 
-
+  # NOTE: This method performs a stock check without database locks. The lock happens later
+  # in handle_confirm, but a race condition could occur between this check and the actual
+  # confirmation. Consider moving the lock acquisition earlier or combining with handle_confirm.
   def has_sufficient_stock?
     order_items.all? do |item|
       item.product.quantity >= item.quantity
@@ -49,7 +50,10 @@ class Order < ApplicationRecord
   end
 
   private
-  
+
+  # NOTE: ActiveRecord::Rollback silently aborts the transaction but doesn't raise outside of it.
+  # The method will still complete and the state machine may be left in an inconsistent state.
+  # Consider using a non-silently-caught exception or returning an error tuple that the caller can act on.
   def handle_confirm
     ActiveRecord::Base.transaction do
       order_items.each do |item|
@@ -78,6 +82,9 @@ class Order < ApplicationRecord
     errors.add(:base, "Order must have at least one item") if order_items.empty?
   end
 
+  # NOTE: Using item.price.to_f suggests price might sometimes be nil. OrderItem doesn't validate
+  # price presence, which could silently calculate an incorrect total. Consider validating price
+  # presence or using a safer default.
   def calculate_total
     self.total = order_items.sum { |item| item.price.to_f * item.quantity }
   end

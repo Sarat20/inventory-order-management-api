@@ -2,6 +2,9 @@ require "sidekiq/web"
 
 Rails.application.routes.draw do
   get "/health", to: "health#show"
+  # NOTE: The Sidekiq Web UI is mounted without authentication. In production, this would expose
+  # job queues, retry functionality, and potentially sensitive data. Consider adding authentication
+  # (e.g., Devise or HTTP Basic) before deployment.
   mount Sidekiq::Web => "/sidekiq"
 
   devise_for :users

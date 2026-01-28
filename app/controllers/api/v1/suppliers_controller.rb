@@ -1,5 +1,8 @@
 module Api
   module V1
+    # NOTE: This controller is missing a show action, which is defined in the routes via
+    # resources :suppliers. This will result in an AbstractController::ActionNotFound error
+    # if someone hits GET /api/v1/suppliers/:id.
     class SuppliersController < BaseController
       before_action :set_supplier, only: %i[update destroy]
 
