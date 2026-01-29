@@ -24,9 +24,6 @@ class User < ApplicationRecord
   }
 
 
-  # before_validation :set_default_status_and_role
-
-
   before_validation :set_default_status_and_role, on: :create
 
 
@@ -49,7 +46,6 @@ class User < ApplicationRecord
   end
 
 
-  # Prevent inactive/terminated users from logging in
   def active_for_authentication?
     super && active?
   end

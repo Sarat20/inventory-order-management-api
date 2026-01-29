@@ -6,10 +6,7 @@ Rails.application.routes.draw do
   # NOTE:
   # The Sidekiq Web UI should NOT be mounted without authentication in production.
   # Otherwise, anyone can see job queues, retries, and internal data.
-  #
-  # We now protect it using Devise authentication and allow access ONLY to admin users.
-  #
-  # If you want even stricter protection, you can also add HTTP Basic Auth or IP whitelisting.
+ 
   authenticate :user, lambda { |u| u.admin? } do
     mount Sidekiq::Web => "/sidekiq"
   end

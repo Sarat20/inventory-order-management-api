@@ -3,7 +3,7 @@ RSpec.configure do |config|
     begin
       Apartment::Tenant.create("test_tenant")
     rescue Apartment::TenantExists
-      # ignore
+   
     end
   end
 
