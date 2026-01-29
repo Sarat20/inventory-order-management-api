@@ -93,6 +93,8 @@ group :development do
   # gem "spring"
 end
 
+gem "letter_opener"
+
 
 gem "lograge", "~> 0.14.0"
 

@@ -15,23 +15,29 @@ class HealthController < ActionController::API
 
   private
 
-  # NOTE: The bare rescue clause will catch all StandardError subclasses.
-  # Consider whether being more specific about which exceptions indicate a failed health check
-  # would be more appropriate.
+  # NOTE:
+  # The bare rescue clause will catch all StandardError subclasses.
+  # We now rescue only ActiveRecord::ActiveRecordError to avoid hiding unrelated bugs.
   def check_db
     ActiveRecord::Base.connection.execute("SELECT 1")
     { status: "ok" }
-  rescue
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error "HealthCheck DB error: #{e.class} - #{e.message}"
     { status: "error" }
   end
 
-  # NOTE: Each health check creates a new Redis.new connection, bypassing any connection pooling.
-  # If you have Redis configured elsewhere with a connection pool, consider reusing that.
-  # Also, the bare rescue clause could be made more specific.
+  def redis_client
+    @redis_client ||= Redis.new
+  end
+
+  # NOTE:
+  # We rescue only Redis::BaseError instead of a generic rescue.
+  # This ensures real bugs still crash and get noticed.
   def check_redis
-    Redis.new.ping == "PONG"
+    redis_client.ping == "PONG"
     { status: "ok" }
-  rescue
+  rescue Redis::BaseError => e
+    Rails.logger.error "HealthCheck Redis error: #{e.class} - #{e.message}"
     { status: "error" }
   end
 end

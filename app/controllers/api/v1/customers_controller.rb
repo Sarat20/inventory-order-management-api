@@ -5,14 +5,21 @@ module Api
 
       def index
         authorize Customer
+
         # NOTE: Customer.all without pagination could be a performance concern as the dataset grows.
         # Other controllers (like SuppliersController) paginate their index actions.
         # Consider whether consistency and scalability warrant pagination here as well.
-        customers = Customer.all
+
+        customers = Customer.order(:id).page(params[:page]).per(10)
 
         render json: {
           success: true,
-          data: CustomerSerializer.new(customers).serializable_hash
+          data: CustomerSerializer.new(customers).serializable_hash,
+          meta: {
+            page: customers.current_page,
+            total_pages: customers.total_pages,
+            total_count: customers.total_count
+          }
         }
       end
 
@@ -48,9 +55,17 @@ module Api
 
       def destroy
         authorize @customer
-        @customer.destroy
-
-        render json: { success: true }
+        if @customer.destroy
+          render json: { success: true }
+        else
+          render json: {
+            success: false,
+            error: {
+              code: "DEPENDENT_RECORDS_EXIST",
+              messages: @customer.errors.full_messages
+            }
+          }, status: :unprocessable_entity
+        end
       end
 
       private

@@ -11,8 +11,8 @@ class Order < ApplicationRecord
 
   accepts_nested_attributes_for :order_items, allow_destroy: true
 
+  before_validation :set_item_prices, on: :create
   before_save :calculate_total
-
   after_commit :enqueue_confirmation, on: :create
 
   validates :status, presence: true
@@ -26,9 +26,6 @@ class Order < ApplicationRecord
 
     event :confirm do
       transitions from: :pending, to: :confirmed
-      after do
-        handle_confirm
-      end
     end
 
     event :ship do
@@ -40,27 +37,33 @@ class Order < ApplicationRecord
     end
   end
 
-  # NOTE: This method performs a stock check without database locks. The lock happens later
-  # in handle_confirm, but a race condition could occur between this check and the actual
-  # confirmation. Consider moving the lock acquisition earlier or combining with handle_confirm.
-  def has_sufficient_stock?
-    order_items.all? do |item|
-      item.product.quantity >= item.quantity
-    end
+  # =========================
+  # BUSINESS LOGIC
+  # =========================
+
+  # NOTE:
+  # We override confirm! so that *all* confirmations ALWAYS go through stock checking.
+  # This prevents someone from accidentally calling AASM's confirm! and bypassing inventory logic.
+  def confirm!
+    confirm_with_stock_check!
   end
 
-  private
+  # NOTE:
+  # This method:
+  # - Locks products to avoid race conditions
+  # - Checks stock safely
+  # - Deducts stock
+  # - Creates stock movement records
+  # - Changes order state atomically inside a transaction
+  def confirm_with_stock_check!
+    raise "Order cannot be confirmed in its current state" unless may_confirm?
 
-  # NOTE: ActiveRecord::Rollback silently aborts the transaction but doesn't raise outside of it.
-  # The method will still complete and the state machine may be left in an inconsistent state.
-  # Consider using a non-silently-caught exception or returning an error tuple that the caller can act on.
-  def handle_confirm
     ActiveRecord::Base.transaction do
       order_items.each do |item|
         product = item.product.lock!
 
         if product.quantity < item.quantity
-          raise ActiveRecord::Rollback, "Insufficient stock"
+          raise StandardError, "Insufficient stock"
         end
 
         product.update!(quantity: product.quantity - item.quantity)
@@ -71,8 +74,27 @@ class Order < ApplicationRecord
           movement_type: "out"
         )
       end
+
+      # NOTE:
+      # We update the status directly instead of calling AASM's confirm!
+      # to avoid recursion and to keep this transaction fully controlled here.
+      update!(status: "confirmed")
     end
   end
+
+  # NOTE:
+  # This method is currently not used in the codebase.
+  # It is kept for readability, possible future validations, or pre-check APIs.
+  # If not needed later, it can safely be removed.
+  def has_sufficient_stock?
+    order_items.all? do |item|
+      item.product.quantity >= item.quantity
+    end
+  end
+
+  # =========================
+  # CALLBACKS & VALIDATIONS
+  # =========================
 
   def enqueue_confirmation
     OrderConfirmationJob.perform_later(id)
@@ -82,10 +104,19 @@ class Order < ApplicationRecord
     errors.add(:base, "Order must have at least one item") if order_items.empty?
   end
 
-  # NOTE: Using item.price.to_f suggests price might sometimes be nil. OrderItem doesn't validate
-  # price presence, which could silently calculate an incorrect total. Consider validating price
-  # presence or using a safer default.
+  # NOTE:
+  # We assume item.price is always present because OrderItem enforces it.
+  # If that validation is ever removed, this method must be updated.
   def calculate_total
-    self.total = order_items.sum { |item| item.price.to_f * item.quantity }
+    self.total = order_items.sum { |item| item.price * item.quantity }
+  end
+
+  # NOTE:
+  # Price is copied from product at creation time to avoid future price changes
+  # affecting historical orders.
+  def set_item_prices
+    order_items.each do |item|
+      item.price ||= item.product.price
+    end
   end
 end

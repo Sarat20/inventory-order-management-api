@@ -4,7 +4,8 @@ module Api
     # resources :suppliers. This will result in an AbstractController::ActionNotFound error
     # if someone hits GET /api/v1/suppliers/:id.
     class SuppliersController < BaseController
-      before_action :set_supplier, only: %i[update destroy]
+     
+      before_action :set_supplier, only: %i[show update destroy]
 
       def index
         authorize Supplier
@@ -19,6 +20,16 @@ module Api
             total_pages: suppliers.total_pages,
             total_count: suppliers.total_count
           }
+        }
+      end
+
+      
+      def show
+        authorize @supplier
+
+        render json: {
+          success: true,
+          data: SupplierSerializer.new(@supplier).serializable_hash
         }
       end
 
@@ -45,9 +56,19 @@ module Api
 
       def destroy
         authorize @supplier
-        @supplier.destroy
 
-        render json: { success: true }
+    
+        if @supplier.destroy
+          render json: { success: true }
+        else
+          render json: {
+            success: false,
+            error: {
+              code: "DEPENDENT_RECORDS_EXIST",
+              messages: @supplier.errors.full_messages
+            }
+          }, status: :unprocessable_entity
+        end
       end
 
       private

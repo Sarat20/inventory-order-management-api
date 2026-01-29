@@ -22,17 +22,19 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  # ✅ FactoryBot
+  #  FactoryBot
   config.include FactoryBot::Syntax::Methods
 
-  # ✅ IMPORTANT for Apartment + request specs
+  #  IMPORTANT for Apartment + request specs
   config.use_transactional_fixtures = true
 
-  # ✅ Devise helpers (only needed for controller specs)
+  # Devise helpers (only needed for controller specs)
   config.include Devise::Test::ControllerHelpers, type: :controller
 
-  # ✅ Clean backtraces
+  #  Clean backtraces
   config.filter_rails_from_backtrace!
+
+  Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 
   # Uncomment if you want auto spec type inference
   # config.infer_spec_type_from_file_location!

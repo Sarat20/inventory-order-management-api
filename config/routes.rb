@@ -2,10 +2,17 @@ require "sidekiq/web"
 
 Rails.application.routes.draw do
   get "/health", to: "health#show"
-  # NOTE: The Sidekiq Web UI is mounted without authentication. In production, this would expose
-  # job queues, retry functionality, and potentially sensitive data. Consider adding authentication
-  # (e.g., Devise or HTTP Basic) before deployment.
-  mount Sidekiq::Web => "/sidekiq"
+
+  # NOTE:
+  # The Sidekiq Web UI should NOT be mounted without authentication in production.
+  # Otherwise, anyone can see job queues, retries, and internal data.
+  #
+  # We now protect it using Devise authentication and allow access ONLY to admin users.
+  #
+  # If you want even stricter protection, you can also add HTTP Basic Auth or IP whitelisting.
+  authenticate :user, lambda { |u| u.admin? } do
+    mount Sidekiq::Web => "/sidekiq"
+  end
 
   devise_for :users
 
@@ -28,8 +35,6 @@ Rails.application.routes.draw do
       post   "auth/register", to: "auth#register"
       delete "auth/logout",   to: "auth#logout"
       get    "auth/me",       to: "auth#me"
-   
-
     end
   end
 end

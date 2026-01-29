@@ -68,6 +68,11 @@ Rails.application.configure do
   config.hosts << "shop_one.localhost"
   config.hosts << "shop_two.localhost"
 
+
+  config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+
   # Bullet gem configuration (N+1 query detection)
   config.after_initialize do
     Bullet.enable = true

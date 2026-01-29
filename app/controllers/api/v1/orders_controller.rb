@@ -10,7 +10,7 @@ module Api
 
         render json: {
           success: true,
-          data: OrderSerializer.new(orders).serializable_hash 
+          data: OrderSerializer.new(orders).serializable_hash
         }
       end
 
@@ -19,19 +19,12 @@ module Api
 
         render json: {
           success: true,
-          data: OrderSerializer.new(@order).serializable_hash 
+          data: OrderSerializer.new(@order).serializable_hash
         }
       end
 
       def create
         order = Order.new(order_params)
-
-        # NOTE: This price-setting logic might be better encapsulated in the model
-        # (e.g., a before_validation callback or a dedicated service). This keeps the
-        # controller thin and ensures the price is always set regardless of how the order is created.
-        order.order_items.each do |item|
-            item.price = item.product.price
-        end
         authorize order
 
         Audited.store[:comment] = "Order created by #{current_user.email}"
@@ -46,16 +39,12 @@ module Api
       def confirm
         authorize @order, :confirm?
 
-        unless @order.may_confirm?
-          return render json: { error: "Order cannot be confirmed in its current state" }, status: :unprocessable_entity
+        begin
+          Audited.store[:comment] = "Order confirmed by #{current_user.email}"
+          @order.confirm!   # calls business logic
+        rescue => e
+          return render json: { error: e.message }, status: :unprocessable_entity
         end
-
-        unless @order.has_sufficient_stock?
-          return render json: { error: "Insufficient stock" }, status: :unprocessable_entity
-        end
-
-        Audited.store[:comment] = "Order confirmed by #{current_user.email}"
-        @order.confirm!
 
         render json: {
           success: true,
@@ -91,7 +80,7 @@ module Api
 
         render json: {
           success: true,
-          data: OrderSerializer.new(@order).serializable_hash 
+          data: OrderSerializer.new(@order).serializable_hash
         }
       end
 

@@ -4,5 +4,12 @@ class StockMovement < ApplicationRecord
 
   # NOTE: Using a string-based inclusion validation is fine, but consider whether an enum would
   # provide better type safety and query convenience (e.g., StockMovement.in, StockMovement.out).
-  validates :movement_type, inclusion: { in: %w[in out] }
+
+ 
+  enum movement_type: {
+    in: "in",
+    out: "out"
+  }
+
+  validates :movement_type, presence: true
 end

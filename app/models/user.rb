@@ -17,14 +17,18 @@ class User < ApplicationRecord
     staff: 1
   }
 
- 
   enum :status, {
     active: 0,
     inactive: 1,
     terminated: 2
   }
 
-  before_validation :set_default_status_and_role
+
+  # before_validation :set_default_status_and_role
+
+
+  before_validation :set_default_status_and_role, on: :create
+
 
   aasm column: :status, enum: true do
     state :active, initial: true
@@ -44,11 +48,22 @@ class User < ApplicationRecord
     end
   end
 
+
+  # Prevent inactive/terminated users from logging in
+  def active_for_authentication?
+    super && active?
+  end
+
+  def inactive_message
+    if terminated?
+      :terminated
+    else
+      :inactive
+    end
+  end
+
   private
 
-  # NOTE: These defaults are also defined at the database level (role: default 1, status: default 0).
-  # Consider whether both layers of defaults are necessary, or if this could lead to confusion
-  # about the source of truth.
   def set_default_status_and_role
     self.role ||= "staff"
     self.status ||= "active"
