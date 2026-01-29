@@ -3,10 +3,7 @@ require "sidekiq/web"
 Rails.application.routes.draw do
   get "/health", to: "health#show"
 
-  # NOTE:
-  # The Sidekiq Web UI should NOT be mounted without authentication in production.
-  # Otherwise, anyone can see job queues, retries, and internal data.
- 
+  # Sidekiq Web UI is protected - only admin users can access it
   authenticate :user, lambda { |u| u.admin? } do
     mount Sidekiq::Web => "/sidekiq"
   end

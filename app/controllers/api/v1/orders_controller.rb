@@ -43,6 +43,9 @@ module Api
           Audited.store[:comment] = "Order confirmed by #{current_user.email}"
           @order.confirm!   # calls business logic
         rescue => e
+          # NOTE: This bare rescue catches all StandardError subclasses. Consider whether
+          # being more specific (e.g., AASM::InvalidTransition, InsufficientStockError) would
+          # improve clarity and debugging.
           return render json: { error: e.message }, status: :unprocessable_entity
         end
 

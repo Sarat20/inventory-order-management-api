@@ -6,10 +6,7 @@ module Api
       def index
         authorize Product
 
-        # NOTE:
-        # If cache key parameters come from user input, consider whether there's any risk
-        # of cache key explosion (e.g., unbounded min_price/max_price combinations).
-
+        # Price parameters are normalized to reduce cache key variations
         normalized_min_price =
           if params[:min_price].present?
             (params[:min_price].to_i / 100) * 100
@@ -43,9 +40,7 @@ module Api
 
           paginated = products.order(:id).page(params[:page]).per(2)
 
-          # NOTE:
-          # We only cache IDs and metadata, not full AR objects.
-          # This keeps the cache light and avoids stale association data.
+          # Cache IDs and metadata only - keeps cache light and avoids stale data
           {
             ids: paginated.pluck(:id),
             meta: {
@@ -71,10 +66,7 @@ module Api
       def show
         authorize @product
 
-        # NOTE:
-        # Caching the ActiveRecord object directly works, but the entire object graph gets cached.
-        # This can become expensive if Product grows in complexity.
-
+        # Cache the serialized output to avoid caching AR objects
         product_json = Rails.cache.fetch("product/#{@product.id}", expires_in: 1.hour) do
           ProductSerializer.new(@product).serializable_hash
         end
@@ -90,11 +82,7 @@ module Api
         authorize product
         product.save!
 
-        # NOTE:
-        # Instead of trying to guess which index cache keys to delete,
-        # we rely on versioned keys ("products/index:v1") in Product model.
-        #
-        # Still deleting broadly here for safety.
+        # Invalidate index cache after creating a new product
         Rails.cache.delete_matched("products/index*")
 
         render json: {

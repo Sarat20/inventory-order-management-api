@@ -15,9 +15,7 @@ class HealthController < ActionController::API
 
   private
 
-  # NOTE:
-  # The bare rescue clause will catch all StandardError subclasses.
-  # We now rescue only ActiveRecord::ActiveRecordError to avoid hiding unrelated bugs.
+  # Rescues only ActiveRecord-specific errors to avoid hiding unrelated bugs
   def check_db
     ActiveRecord::Base.connection.execute("SELECT 1")
     { status: "ok" }
@@ -30,9 +28,7 @@ class HealthController < ActionController::API
     @redis_client ||= Redis.new
   end
 
-  # NOTE:
-  # We rescue only Redis::BaseError instead of a generic rescue.
-  # This ensures real bugs still crash and get noticed.
+  # Rescues only Redis-specific errors to ensure real bugs still surface
   def check_redis
     redis_client.ping == "PONG"
     { status: "ok" }

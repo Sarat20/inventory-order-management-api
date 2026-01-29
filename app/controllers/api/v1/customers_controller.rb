@@ -6,10 +6,6 @@ module Api
       def index
         authorize Customer
 
-        # NOTE: Customer.all without pagination could be a performance concern as the dataset grows.
-        # Other controllers (like SuppliersController) paginate their index actions.
-        # Consider whether consistency and scalability warrant pagination here as well.
-
         customers = Customer.order(:id).page(params[:page]).per(10)
 
         render json: {

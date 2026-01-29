@@ -4,9 +4,6 @@ class Product < ApplicationRecord
   belongs_to :category
   belongs_to :supplier
 
-  # NOTE: This association lacks a dependent option. Consider whether orphaned stock_movements
-  # should be destroyed, nullified, or restricted when a product is deleted.
-
   has_many :stock_movements, dependent: :restrict_with_error
 
   has_many :order_items
@@ -24,8 +21,7 @@ class Product < ApplicationRecord
   after_commit :check_low_stock, on: :update
   after_commit :invalidate_cache
 
-  # NOTE: The low stock threshold (5) was hardcoded earlier.
-  # We have now extracted it to a constant to avoid duplication and make future changes easy.
+  # Low stock threshold - used for notifications and stock status checks
   LOW_STOCK_THRESHOLD = 5
 
   def display_price

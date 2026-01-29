@@ -82,10 +82,9 @@ class Order < ApplicationRecord
     end
   end
 
-  # NOTE:
-  # This method is currently not used in the codebase.
-  # It is kept for readability, possible future validations, or pre-check APIs.
-  # If not needed later, it can safely be removed.
+  # NOTE: This method is currently unused — consider removing to avoid dead code.
+  # If kept for future use (e.g., pre-check APIs), add tests to ensure it stays in sync
+  # with the actual stock logic in confirm_with_stock_check!
   def has_sufficient_stock?
     order_items.all? do |item|
       item.product.quantity >= item.quantity

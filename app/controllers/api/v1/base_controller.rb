@@ -3,8 +3,6 @@ module Api
     class BaseController < ApplicationController
       include Pundit::Authorization
       include TenantSwitcher
-      # NOTE: This skip_before_action and the duplicate check inside TenantSwitcher#switch_tenant
-      # both handle the test environment. Consider whether one approach is sufficient to avoid redundancy.  
 
       before_action :authenticate_user!
       before_action :set_audit_user
